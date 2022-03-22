@@ -88,10 +88,10 @@ partitions (x:xs) = ([], x:xs) : [(x:ys, zs) | (ys, zs) <- partitions xs]
 -- (dla uniknięcia niejasności możemy założyć, ze wszystkie elementy listy wejściowej są różne)
 permutations :: [a] -> [[a]]
 permutations [] = [[]]
-permutations xs = [[z] ++ ws  | (ys, z:zs) <- partitions xs, ws <- permutations (ys ++ zs)]
+permutations xs = [z : ws | (ys, z:zs) <- partitions xs, ws <- permutations (ys ++ zs)]
 
 
 -- Napisz funkcje nub, ktora usunie z listy wszystkie duplikaty
-nub :: [a] -> [a]
+nub :: Eq a => [a] -> [a]
 nub [] = []
-
+nub (x:xs) = let ys = filter (/=x) (nub xs) in x:ys
