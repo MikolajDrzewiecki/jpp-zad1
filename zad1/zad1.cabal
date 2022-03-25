@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           jpp
+name:           zad1
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/Github username here/jpp#readme>
-homepage:       https://github.com/Github username here/jpp#readme
-bug-reports:    https://github.com/Github username here/jpp/issues
+description:    Please see the README on GitHub at <https://github.com/githubuser/zad1#readme>
+homepage:       https://github.com/githubuser/zad1#readme
+bug-reports:    https://github.com/githubuser/zad1/issues
 author:         Author name here
-maintainer:     Author email here
-copyright:      2019 Author name here
+maintainer:     example@example.com
+copyright:      2022 Author name here
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -21,38 +21,43 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/Github username here/jpp
+  location: https://github.com/githubuser/zad1
 
 library
+  exposed-modules:
+      Hashable32
+      HashTree
+      Lib
+      Utils
   other-modules:
-      Paths_jpp
+      Paths_zad1
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
   default-language: Haskell2010
 
-executable jpp-exe
+executable zad1-exe
   main-is: Main.hs
   other-modules:
-      Paths_jpp
+      Paths_zad1
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , jpp
+    , zad1
   default-language: Haskell2010
 
-test-suite jpp-test
+test-suite zad1-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_jpp
+      Paths_zad1
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , jpp
+    , zad1
   default-language: Haskell2010

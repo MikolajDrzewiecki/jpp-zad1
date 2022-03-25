@@ -1,3 +1,3 @@
-# Changelog for jpp
+# Changelog for zad1
 
 ## Unreleased changes
