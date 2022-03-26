@@ -1,5 +1,5 @@
 name:                zad1
-version:             0.1.0.0
+version:             1.0.0.0
 github:              "githubuser/zad1"
 license:             BSD3
 author:              "Author name here"
@@ -24,6 +24,8 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies: 
+    - Cabal <= 3.6.3.0
 
 executables:
   zad1-exe:

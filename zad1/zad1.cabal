@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           zad1
-version:        0.1.0.0
+version:        1.0.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/zad1#readme>
 homepage:       https://github.com/githubuser/zad1#readme
 bug-reports:    https://github.com/githubuser/zad1/issues
@@ -27,14 +27,14 @@ library
   exposed-modules:
       Hashable32
       HashTree
-      Lib
       Utils
   other-modules:
       Paths_zad1
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      Cabal <=3.6.3.0
+    , base >=4.7 && <5
   default-language: Haskell2010
 
 executable zad1-exe

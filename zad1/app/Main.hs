@@ -1,6 +1,7 @@
 module Main where
 
-import Lib
+import HashTree
 
 main :: IO ()
-main = someFunc
+main = print $
+  buildProof 'i' $ buildTree "bitco"

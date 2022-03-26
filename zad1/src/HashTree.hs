@@ -1,56 +1,114 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+-- Mikołaj Drzewecki 406134
+
 
 module HashTree (
-    Tree,
     leaf,
     twig,
     node,
     treeHash,
     drawTree,
+    buildTree,
+    showMerklePath,
+    merklePaths,
+    buildProof,
 ) where
 
-    import Hashable32 ( Hashable(hash), Hash, showHash )
+    import Debug.Trace --todo wywalić po debugowaniu
+    import Hashable32 ( Hashable, Hash, showHash, hash )
+
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part A $$$$$$$$$$$$$$$$$$$$$$$$$-}
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
     
     data Tree a = Leaf Hash a | Twig Hash (Tree a) | Node Hash (Tree a) (Tree a)
 
-    -- A hash of the Tree
-    treeHash :: Tree a -> Hash 
+    treeHash :: Tree a -> Hash
     treeHash (Leaf h _) = h
     treeHash (Twig h _) = h
     treeHash (Node h _ _) = h
 
-    -- Creates a Tree without children
     leaf :: Hashable a => a -> Tree a
     leaf x = Leaf (hash x) x
-    
-    -- Creates a Tree with 1 child
+
     twig :: Hashable a => Tree a -> Tree a
     twig t = Twig ( hash(treeHash t, treeHash t) ) t
 
-    -- Creates a Tree with two children
     node :: Hashable a => Tree a -> Tree a -> Tree a
     node l r = Node ( hash(treeHash l, treeHash r)) l r
 
-    -- Builds Tree out of a list of elements
     buildTree :: Hashable a => [a] -> Tree a
     buildTree (x:xs) = head $ buildTree' $ map leaf (x:xs)
         where
             buildTree' :: Hashable a => [Tree a] -> [Tree a]
-            buildTree' [x] = [x]
-            buildTree' xs = buildTree' $ group xs
+            buildTree' [y] = [y]
+            buildTree' ys = buildTree' $ group ys
                 where
                     group :: Hashable a => [Tree a] -> [Tree a]
                     group [] = []
-                    group [x] = [twig x]
-                    group (st:nd:xs) = node st nd : group xs
-                
-    -- Draws a representation of a Tree
+                    group [y] = [twig y]
+                    group (st:nd:zs) = node st nd : group zs
+
     drawTree :: Show a => Tree a -> String
     drawTree t = drawNestedTree t 0 0
-        where 
-            drawNestedTree :: Show a => Tree a -> Int -> Int -> String 
+        where
+            drawNestedTree :: Show a => Tree a -> Int -> Int -> String
             drawNestedTree (Leaf h v) 0 _ = showHash h ++ " " ++ show v ++ "\n"
-            drawNestedTree (Twig h t) 0 n = showHash h ++ " +\n" ++ drawNestedTree t (n + 1) (n + 1)
+            drawNestedTree (Twig h l) 0 n = showHash h ++ " +\n" ++ drawNestedTree l (n + 1) (n + 1)
             drawNestedTree (Node h l r) 0 n = showHash h ++ " -\n" ++ drawNestedTree l (n + 1) (n + 1) ++ drawNestedTree r (n + 1) (n + 1)
-            drawNestedTree t m n = ' ' : drawNestedTree t (m - 1) n
+            drawNestedTree nt m n = ' ' : drawNestedTree nt (m - 1) n
 
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part B $$$$$$$$$$$$$$$$$$$$$$$$$-}
+    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
+    
+    type MerklePath = [Either Hash Hash]
+
+    data MerkleProof a = MerkleProof a MerklePath
+
+    showMerklePath :: MerklePath -> String
+    showMerklePath mp = let xs = map fromEither' mp in concat xs
+            where
+                fromEither' :: Either Hash Hash -> String
+                fromEither' (Left h) = '>' : showHash h
+                fromEither' (Right h) = '<' : showHash h
+
+    instance Show a => Show (MerkleProof a) where
+        show (MerkleProof a mp) = "(MerkleProof" ++ " " ++ show a ++ " " ++ showMerklePath mp ++ ")"
+
+    merklePaths :: Hashable a => a -> Tree a -> [MerklePath]
+    merklePaths _ (Leaf _ _) = []
+    merklePaths el (Twig _ (Leaf h _))
+        | hash el == h = [[Right h]]
+        | otherwise = []
+    merklePaths el (Twig _ t) = 
+        let res = merklePaths el t in 
+          case res of 
+            [] -> []
+            xs -> map (Right (treeHash t) : ) xs
+    merklePaths el (Node _ (Leaf hl _) (Leaf hr _))
+        | hash el == hl && hash el == hr = [[Right hr], [Left hl]]
+        | hash el == hl && hash el /= hr = [[Right hr]]
+        | hash el /= hl && hash el == hr = [[Left hl]]
+        | otherwise = []
+    merklePaths el (Node _ l r) =
+        let lres = merklePaths el l in
+            let rres = merklePaths el r in
+                case lres of
+                    [] -> case rres of
+                        [] -> []
+                        rs -> map (Left (treeHash l) : ) rs
+                    ls -> case rres of
+                        [] -> map (Right (treeHash r) : ) ls
+                        rs -> map (Right (treeHash r) : ) ls ++ map (Left (treeHash l) : ) rs
+
+    buildProof :: Hashable a => a -> Tree a -> Maybe (MerkleProof a)
+    buildProof el (Leaf h _)
+      | hash el == h = Just $ MerkleProof el []
+      | otherwise = Nothing
+    buildProof el t = let res = merklePaths el t in
+        case res of
+            [] -> Nothing
+            (x:_) -> Just $ MerkleProof el x
+    
+    --verifyProof :: Hashable a => Hash -> MerkleProof a -> Bool
+    
