@@ -7,6 +7,7 @@ module Blockchain where
     import Hashable32
     import HashTree
     import PPrint   
+    
     type Address = Hash
     type Amount = Word32
     type Miner = Address
@@ -162,10 +163,12 @@ module Blockchain where
       let block = mineBlock miner parent txs in 
         (block, map (createReceipt block) txs) where
           tree = buildTree ((coinbaseTx miner):txs)
+          
           getProof :: Transaction -> MerkleProof Transaction
           getProof t = let p = buildProof t tree in case p of
              Nothing -> (MerkleProof t [])
              Just mp -> mp
+             
           createReceipt :: Block -> Transaction -> TransactionReceipt
           createReceipt b t = TxReceipt {txrBlock = hash b, txrProof = getProof t}
         

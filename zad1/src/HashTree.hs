@@ -16,7 +16,6 @@ module HashTree (
     buildProof,
     verifyProof
 ) where
-
     import Hashable32 ( Hashable, Hash, showHash, hash )
 
     type MerklePath = [Either Hash Hash]
@@ -68,7 +67,8 @@ module HashTree (
             fromEither' (Right h) = '<' : showHash h
 
     instance Show a => Show (MerkleProof a) where
-        show (MerkleProof a mp) = "(MerkleProof" ++ " " ++ show a ++ " " ++ showMerklePath mp ++ ")"
+        showsPrec 11 (MerkleProof a mp) = showString "(MerkleProof " . shows a . showChar ' ' . showString (showMerklePath mp) . showChar ')'
+        showsPrec _ (MerkleProof a mp) = showString "MerkleProof (" . shows a . showString ") " . showString (showMerklePath mp)
 
     merklePaths :: Hashable a => a -> Tree a -> [MerklePath]
     merklePaths _ (Leaf _ _) = []
