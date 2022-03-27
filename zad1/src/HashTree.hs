@@ -13,17 +13,17 @@ module HashTree (
     buildProof,
     verifyProof,
     MerkleProof,
+    MerklePath,
+    Tree,
 ) where
 
-    import Debug.Trace --todo wywalić po debugowaniu
     import Hashable32 ( Hashable, Hash, showHash, hash )
-    import Utils ( fromEither )
 
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part A $$$$$$$$$$$$$$$$$$$$$$$$$-}
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
+    type MerklePath = [Either Hash Hash]
     
     data Tree a = Leaf Hash a | Twig Hash (Tree a) | Node Hash (Tree a) (Tree a)
+    
+    data MerkleProof a = MerkleProof a MerklePath
 
     treeHash :: Tree a -> Hash
     treeHash (Leaf h _) = h
@@ -59,14 +59,6 @@ module HashTree (
             drawNestedTree (Twig h l) 0 n = showHash h ++ " +\n" ++ drawNestedTree l (n + 1) (n + 1)
             drawNestedTree (Node h l r) 0 n = showHash h ++ " -\n" ++ drawNestedTree l (n + 1) (n + 1) ++ drawNestedTree r (n + 1) (n + 1)
             drawNestedTree nt m n = ' ' : ' ' : drawNestedTree nt (m - 1) n
-
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part B $$$$$$$$$$$$$$$$$$$$$$$$$-}
-    {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
-    
-    type MerklePath = [Either Hash Hash]
-
-    data MerkleProof a = MerkleProof a MerklePath
 
     showMerklePath :: MerklePath -> String
     showMerklePath mp = let xs = map fromEither' mp in concat xs
@@ -115,10 +107,8 @@ module HashTree (
     
     verifyProof :: Hashable a => Hash -> MerkleProof a -> Bool
     verifyProof h (MerkleProof el []) = hash el == h
-    verifyProof h (MerkleProof el xs) = let res = foldr myHash (hash el) xs in res == h
+    verifyProof h (MerkleProof el xs) = let res = foldr hash' (hash el) xs in res == h
       where 
-        myHash :: Either Hash Hash -> Hash -> Hash
-        myHash (Left hl) hr = hash (hl, hr)
-        myHash (Right hr) hl = hash (hl, hr)
-    
-    
+        hash' :: Either Hash Hash -> Hash -> Hash
+        hash' (Left hl) hr = hash (hl, hr)
+        hash' (Right hr) hl = hash (hl, hr)
