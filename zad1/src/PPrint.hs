@@ -4,11 +4,11 @@ writeln :: String -> IO ()
 writeln = putStrLn
 
 showsPair :: Show a => (String, a) -> ShowS
-showsPair (k,v) = undefined
+showsPair (k,v) = showString k . showString ": " . shows v
 
 pprH, pprV :: [ShowS] -> ShowS
-pprV = intercalateS undefined
-pprH = intercalateS undefined
+pprV = intercalateS (showChar '\n')
+pprH = intercalateS (showChar ' ')
 
 intercalateS :: ShowS -> [ShowS] -> ShowS
 intercalateS sep (x:xs) = foldl (.) x (prependToAll sep xs) where  
@@ -17,7 +17,10 @@ intercalateS sep (x:xs) = foldl (.) x (prependToAll sep xs) where
   prependToAll s ys = map (s.) ys
 
 pprListWith :: (a -> ShowS) -> [a] -> ShowS
-pprListWith = undefined
+pprListWith fn xs = concat' ( map fn xs) where
+  concat' :: [ShowS] -> ShowS 
+  concat' [] = showChar '\n'
+  concat' (y:ys) = y . concat' ys
 
 runShows :: ShowS -> IO ()
 runShows = putStrLn . ($"")

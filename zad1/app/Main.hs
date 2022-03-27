@@ -9,9 +9,9 @@ import Debug.Trace
 
 main :: IO ()
 
-main = print $
+main =
   let charlie = hash "Charlie" in
     let (block, [receipt]) = mineTransactions charlie (hash block1) [tx1] in
           --receipt
-          buildProof 'i' $ buildTree "bitcoin"
+          runShows $ pprListWith pprBlock [block0, block1, block2]
 
