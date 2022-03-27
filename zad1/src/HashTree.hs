@@ -11,10 +11,13 @@ module HashTree (
     showMerklePath,
     merklePaths,
     buildProof,
+    verifyProof,
+    MerkleProof,
 ) where
 
     import Debug.Trace --todo wywalić po debugowaniu
     import Hashable32 ( Hashable, Hash, showHash, hash )
+    import Utils ( fromEither )
 
     {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
     {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part A $$$$$$$$$$$$$$$$$$$$$$$$$-}
@@ -55,7 +58,7 @@ module HashTree (
             drawNestedTree (Leaf h v) 0 _ = showHash h ++ " " ++ show v ++ "\n"
             drawNestedTree (Twig h l) 0 n = showHash h ++ " +\n" ++ drawNestedTree l (n + 1) (n + 1)
             drawNestedTree (Node h l r) 0 n = showHash h ++ " -\n" ++ drawNestedTree l (n + 1) (n + 1) ++ drawNestedTree r (n + 1) (n + 1)
-            drawNestedTree nt m n = ' ' : drawNestedTree nt (m - 1) n
+            drawNestedTree nt m n = ' ' : ' ' : drawNestedTree nt (m - 1) n
 
     {- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$-}
     {- $$$$$$$$$$$$$$$$$$$$$$$$$ Part B $$$$$$$$$$$$$$$$$$$$$$$$$-}
@@ -67,10 +70,10 @@ module HashTree (
 
     showMerklePath :: MerklePath -> String
     showMerklePath mp = let xs = map fromEither' mp in concat xs
-            where
-                fromEither' :: Either Hash Hash -> String
-                fromEither' (Left h) = '>' : showHash h
-                fromEither' (Right h) = '<' : showHash h
+        where
+            fromEither' :: Either Hash Hash -> String
+            fromEither' (Left h) = '>' : showHash h
+            fromEither' (Right h) = '<' : showHash h
 
     instance Show a => Show (MerkleProof a) where
         show (MerkleProof a mp) = "(MerkleProof" ++ " " ++ show a ++ " " ++ showMerklePath mp ++ ")"
@@ -110,5 +113,12 @@ module HashTree (
             [] -> Nothing
             (x:_) -> Just $ MerkleProof el x
     
-    --verifyProof :: Hashable a => Hash -> MerkleProof a -> Bool
+    verifyProof :: Hashable a => Hash -> MerkleProof a -> Bool
+    verifyProof h (MerkleProof el []) = hash el == h
+    verifyProof h (MerkleProof el xs) = let res = foldr myHash (hash el) xs in res == h
+      where 
+        myHash :: Either Hash Hash -> Hash -> Hash
+        myHash (Left hl) hr = hash (hl, hr)
+        myHash (Right hr) hl = hash (hl, hr)
+    
     
