@@ -2,6 +2,9 @@
 
 
 module HashTree (
+    MerkleProof (..),
+    MerklePath,
+    Tree (..),
     leaf,
     twig,
     node,
@@ -11,18 +14,15 @@ module HashTree (
     showMerklePath,
     merklePaths,
     buildProof,
-    verifyProof,
-    MerkleProof,
-    MerklePath,
-    Tree,
+    verifyProof
 ) where
 
     import Hashable32 ( Hashable, Hash, showHash, hash )
 
     type MerklePath = [Either Hash Hash]
-    
+
     data Tree a = Leaf Hash a | Twig Hash (Tree a) | Node Hash (Tree a) (Tree a)
-    
+
     data MerkleProof a = MerkleProof a MerklePath
 
     treeHash :: Tree a -> Hash
@@ -108,7 +108,7 @@ module HashTree (
     verifyProof :: Hashable a => Hash -> MerkleProof a -> Bool
     verifyProof h (MerkleProof el []) = hash el == h
     verifyProof h (MerkleProof el xs) = let res = foldr hash' (hash el) xs in res == h
-      where 
+      where
         hash' :: Either Hash Hash -> Hash -> Hash
         hash' (Left hl) hr = hash (hl, hr)
         hash' (Right hr) hl = hash (hl, hr)

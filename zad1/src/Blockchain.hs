@@ -6,28 +6,33 @@ module Blockchain where
     import Data.Word
     import Hashable32
     import HashTree
-    import PPrint
-    
+    import PPrint   
     type Address = Hash
     type Amount = Word32
     type Miner = Address
     type Nonce = Word32
         
     data Transaction = Tx { 
-        txFrom :: Address,
-        txTo :: Address,
-        txAmount :: Amount 
+      txFrom :: Address,
+      txTo :: Address,
+      txAmount :: Amount 
     } deriving Show
     
     data Block = Block {
-        blockHdr :: BlockHeader,
-        blockTxs :: [Transaction]
+      blockHdr :: BlockHeader,
+      blockTxs :: [Transaction]
     }
+    
     data BlockHeader = BlockHeader { 
-        parent :: Hash,
-        coinbase :: Transaction,
-        txroot :: Hash,
-        nonce :: Hash 
+      parent :: Hash,
+      coinbase :: Transaction,
+      txroot :: Hash,
+      nonce :: Hash 
+    } deriving Show
+    
+    data TransactionReceipt = TxReceipt {  
+      txrBlock :: Hash,
+      txrProof :: MerkleProof Transaction 
     } deriving Show
     
     instance Hashable Transaction where
@@ -53,9 +58,9 @@ module Blockchain where
        
     tx1 :: Transaction
     tx1 = Tx { 
-        txFrom = hash "Alice",
-        txTo = hash "Bob",
-        txAmount = 1 * coin
+      txFrom = hash "Alice",
+      txTo = hash "Bob",
+      txAmount = 1 * coin
     }
     
     genesis :: Block
@@ -86,8 +91,7 @@ module Blockchain where
         coinbase = coinbaseTx miner,
         txroot = treeHash (buildTree ((coinbaseTx miner):txs)),
         nonce = 0
-      } in Block (findNonce header) txs
-        where 
+      } in Block (findNonce header) txs where 
           findNonce :: BlockHeader -> BlockHeader
           findNonce (BlockHeader p c t n)
             | validNonce (BlockHeader p c t n) = BlockHeader p c t n
@@ -149,15 +153,24 @@ module Blockchain where
     True
     -}
     
-    data TransactionReceipt = TxReceipt
-      {  txrBlock :: Hash, txrProof :: MerkleProof Transaction } deriving Show
-    
     validateReceipt :: TransactionReceipt -> BlockHeader -> Bool
     validateReceipt r hdr = txrBlock r == hash hdr
                             && verifyProof (txroot hdr) (txrProof r)
     
     mineTransactions :: Miner -> Hash -> [Transaction] -> (Block, [TransactionReceipt])
-    mineTransactions miner parent txs = undefined
+    mineTransactions miner parent txs = 
+      let block = mineBlock miner parent txs in 
+        (block, map (createReceipt block) txs) where
+          tree = buildTree ((coinbaseTx miner):txs)
+          getProof :: Transaction -> MerkleProof Transaction
+          getProof t = let p = buildProof t tree in case p of
+             Nothing -> (MerkleProof t [])
+             Just mp -> mp
+          createReceipt :: Block -> Transaction -> TransactionReceipt
+          createReceipt b t = TxReceipt {txrBlock = hash b, txrProof = getProof t}
+        
+      
+        
     
     {- | Pretty printing
     >>> runShows $ pprBlock block2
