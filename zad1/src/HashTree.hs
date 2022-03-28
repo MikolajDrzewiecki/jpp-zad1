@@ -50,16 +50,16 @@ module HashTree ( MerkleProof (..)
     drawTree t = drawNestedTree t 0 0 "" where
       drawNestedTree :: Show a => Tree a -> Int -> Int -> ShowS
       drawNestedTree (Leaf h v) 0 _
-        = shows (showHash h)
+        = showString (showHash h)
         . showChar ' '
         . shows v
         . showChar '\n'
       drawNestedTree (Twig h l) 0 n
-        = shows (showHash h)
+        = showString (showHash h)
         . showString " +\n"
         . drawNestedTree l (n + 1) (n + 1)
       drawNestedTree (Node h l r) 0 n
-        = shows (showHash h)
+        = showString (showHash h)
         . showString " -\n"
         . drawNestedTree l (n + 1) (n + 1)
         . drawNestedTree r (n + 1) (n + 1)
