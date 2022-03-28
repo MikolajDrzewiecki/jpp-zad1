@@ -2,6 +2,7 @@
 
 
 module Blockchain where
+  
     import Control.Monad
     import Data.Word
     import Hashable32
@@ -13,28 +14,28 @@ module Blockchain where
     type Miner = Address
     type Nonce = Word32
         
-    data Transaction = Tx { 
-      txFrom :: Address,
-      txTo :: Address,
-      txAmount :: Amount 
-    } deriving Show
+    data Transaction = Tx
+      { txFrom :: Address
+      , txTo :: Address
+      , txAmount :: Amount
+      } deriving Show
     
-    data Block = Block {
-      blockHdr :: BlockHeader,
-      blockTxs :: [Transaction]
-    }
+    data Block = Block 
+      { blockHdr :: BlockHeader
+      , blockTxs :: [Transaction]
+      } 
     
-    data BlockHeader = BlockHeader { 
-      parent :: Hash,
-      coinbase :: Transaction,
-      txroot :: Hash,
-      nonce :: Hash 
-    } deriving Show
+    data BlockHeader = BlockHeader
+      { parent :: Hash
+      , coinbase :: Transaction
+      , txroot :: Hash
+      , nonce :: Hash
+      } deriving Show
     
-    data TransactionReceipt = TxReceipt {  
-      txrBlock :: Hash,
-      txrProof :: MerkleProof Transaction 
-    } deriving Show
+    data TransactionReceipt = TxReceipt
+      { txrBlock :: Hash
+      , txrProof :: MerkleProof Transaction 
+      } deriving Show
     
     instance Hashable Transaction where
       hash (Tx a b c) = hash [hash a, hash b, hash c]
@@ -58,11 +59,11 @@ module Blockchain where
     blockReward = 50 * coin
        
     tx1 :: Transaction
-    tx1 = Tx { 
-      txFrom = hash "Alice",
-      txTo = hash "Bob",
-      txAmount = 1 * coin
-    }
+    tx1 = Tx
+      { txFrom = hash "Alice"
+      , txTo = hash "Bob"
+      , txAmount = 1 * coin
+      }
     
     genesis :: Block
     genesis = block0
@@ -121,8 +122,7 @@ module Blockchain where
       guard (parent hdr == parentHash)
       guard (txroot hdr == treeHash (buildTree (coinbase hdr:txs)))
       guard (validNonce hdr)
-      return (hash b)
-    
+      return (hash b)  
     
     {- | Transaction Receipts
     NB the following will not work in VS Code, see below
@@ -159,8 +159,8 @@ module Blockchain where
                             && verifyProof (txroot hdr) (txrProof r)
     
     mineTransactions :: Miner -> Hash -> [Transaction] -> (Block, [TransactionReceipt])
-    mineTransactions miner parent txs = 
-      let block = mineBlock miner parent txs in 
+    mineTransactions miner par txs = 
+      let block = mineBlock miner par txs in 
         (block, map (createReceipt block) txs) where
           tree = buildTree ((coinbaseTx miner):txs)
           
@@ -171,9 +171,6 @@ module Blockchain where
              
           createReceipt :: Block -> Transaction -> TransactionReceipt
           createReceipt b t = TxReceipt {txrBlock = hash b, txrProof = getProof t}
-        
-      
-        
     
     {- | Pretty printing
     >>> runShows $ pprBlock block2

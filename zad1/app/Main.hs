@@ -8,10 +8,11 @@ import Debug.Trace
 
 
 main :: IO ()
-
+main = putStr $ drawTree $ buildTree "fubar"
+{-
 main =
   let charlie = hash "Charlie" in
     let (block, [receipt]) = mineTransactions charlie (hash block1) [tx1] in
           --receipt
           runShows $ pprListWith pprBlock [block0, block1, block2]
-
+-}
